@@ -1,0 +1,8 @@
+﻿syntax = "proto3";
+option go_package = "/";
+
+service ConsensusPeer {
+  rpc PassCriticalPassPermission (Empty) returns (Empty);
+}
+
+message Empty {}
