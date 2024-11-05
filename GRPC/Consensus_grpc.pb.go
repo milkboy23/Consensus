@@ -19,101 +19,101 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ConsensusPeer_PassCriticalPassPermission_FullMethodName = "/ConsensusPeer/PassCriticalPassPermission"
+	TokenRing_PassToken_FullMethodName = "/TokenRing/PassToken"
 )
 
-// ConsensusPeerClient is the client API for ConsensusPeer service.
+// TokenRingClient is the client API for TokenRing service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type ConsensusPeerClient interface {
-	PassCriticalPassPermission(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
+type TokenRingClient interface {
+	PassToken(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
 }
 
-type consensusPeerClient struct {
+type tokenRingClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewConsensusPeerClient(cc grpc.ClientConnInterface) ConsensusPeerClient {
-	return &consensusPeerClient{cc}
+func NewTokenRingClient(cc grpc.ClientConnInterface) TokenRingClient {
+	return &tokenRingClient{cc}
 }
 
-func (c *consensusPeerClient) PassCriticalPassPermission(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error) {
+func (c *tokenRingClient) PassToken(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Empty)
-	err := c.cc.Invoke(ctx, ConsensusPeer_PassCriticalPassPermission_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, TokenRing_PassToken_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// ConsensusPeerServer is the server API for ConsensusPeer service.
-// All implementations must embed UnimplementedConsensusPeerServer
+// TokenRingServer is the server API for TokenRing service.
+// All implementations must embed UnimplementedTokenRingServer
 // for forward compatibility.
-type ConsensusPeerServer interface {
-	PassCriticalPassPermission(context.Context, *Empty) (*Empty, error)
-	mustEmbedUnimplementedConsensusPeerServer()
+type TokenRingServer interface {
+	PassToken(context.Context, *Empty) (*Empty, error)
+	mustEmbedUnimplementedTokenRingServer()
 }
 
-// UnimplementedConsensusPeerServer must be embedded to have
+// UnimplementedTokenRingServer must be embedded to have
 // forward compatible implementations.
 //
 // NOTE: this should be embedded by value instead of pointer to avoid a nil
 // pointer dereference when methods are called.
-type UnimplementedConsensusPeerServer struct{}
+type UnimplementedTokenRingServer struct{}
 
-func (UnimplementedConsensusPeerServer) PassCriticalPassPermission(context.Context, *Empty) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method PassCriticalPassPermission not implemented")
+func (UnimplementedTokenRingServer) PassToken(context.Context, *Empty) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PassToken not implemented")
 }
-func (UnimplementedConsensusPeerServer) mustEmbedUnimplementedConsensusPeerServer() {}
-func (UnimplementedConsensusPeerServer) testEmbeddedByValue()                       {}
+func (UnimplementedTokenRingServer) mustEmbedUnimplementedTokenRingServer() {}
+func (UnimplementedTokenRingServer) testEmbeddedByValue()                   {}
 
-// UnsafeConsensusPeerServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to ConsensusPeerServer will
+// UnsafeTokenRingServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to TokenRingServer will
 // result in compilation errors.
-type UnsafeConsensusPeerServer interface {
-	mustEmbedUnimplementedConsensusPeerServer()
+type UnsafeTokenRingServer interface {
+	mustEmbedUnimplementedTokenRingServer()
 }
 
-func RegisterConsensusPeerServer(s grpc.ServiceRegistrar, srv ConsensusPeerServer) {
-	// If the following call pancis, it indicates UnimplementedConsensusPeerServer was
+func RegisterTokenRingServer(s grpc.ServiceRegistrar, srv TokenRingServer) {
+	// If the following call pancis, it indicates UnimplementedTokenRingServer was
 	// embedded by pointer and is nil.  This will cause panics if an
 	// unimplemented method is ever invoked, so we test this at initialization
 	// time to prevent it from happening at runtime later due to I/O.
 	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
 		t.testEmbeddedByValue()
 	}
-	s.RegisterService(&ConsensusPeer_ServiceDesc, srv)
+	s.RegisterService(&TokenRing_ServiceDesc, srv)
 }
 
-func _ConsensusPeer_PassCriticalPassPermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _TokenRing_PassToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ConsensusPeerServer).PassCriticalPassPermission(ctx, in)
+		return srv.(TokenRingServer).PassToken(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ConsensusPeer_PassCriticalPassPermission_FullMethodName,
+		FullMethod: TokenRing_PassToken_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ConsensusPeerServer).PassCriticalPassPermission(ctx, req.(*Empty))
+		return srv.(TokenRingServer).PassToken(ctx, req.(*Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// ConsensusPeer_ServiceDesc is the grpc.ServiceDesc for ConsensusPeer service.
+// TokenRing_ServiceDesc is the grpc.ServiceDesc for TokenRing service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var ConsensusPeer_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "ConsensusPeer",
-	HandlerType: (*ConsensusPeerServer)(nil),
+var TokenRing_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "TokenRing",
+	HandlerType: (*TokenRingServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "PassCriticalPassPermission",
-			Handler:    _ConsensusPeer_PassCriticalPassPermission_Handler,
+			MethodName: "PassToken",
+			Handler:    _TokenRing_PassToken_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
