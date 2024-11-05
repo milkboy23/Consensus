@@ -13,9 +13,8 @@ import (
 	"time"
 )
 
-var hasTokenAtStart = flag.Bool("start", false, "")
-var listenPort = flag.Int("lPort", 0, "")
-var sendPort = flag.Int("sPort", 1, "")
+var starter = flag.Bool("start", false, "")
+var id = flag.Int("id", 0, "")
 
 type ConsensusPeerServer struct {
 	proto.UnimplementedTokenRingServer
@@ -23,63 +22,68 @@ type ConsensusPeerServer struct {
 
 var sender proto.TokenRingClient
 var hasToken bool
-var done chan int
 
 func main() {
 	flag.Parse()
-	hasToken = *hasTokenAtStart
-
-	log.Printf("lPort %d | sPort %d | start %v", *listenPort, *sendPort, *hasTokenAtStart)
+	hasToken = *starter
 
 	go StartListener()
 	StartSender()
 
 	go RandomlyWantToken()
-	<-done
+
+	<-make(chan int) // Just a way to freeze the program
 }
 
 func RandomlyWantToken() {
 	for {
+		sleepDuration := rand.Intn(10) + 1
+		time.Sleep(time.Duration(sleepDuration) * time.Second) // Wait until we want the token
 		log.Print("I want to use my token")
 
 		if !hasToken {
 			log.Print("BUT I DON'T HAVE IT >:(")
 			for !hasToken {
-
-			}
+			} // Wait until we get the token
 		}
-		log.Print("I have it :D")
 
-		log.Print("Using token!")
-		time.Sleep(time.Second * 1)
-		SendToken()
+		log.Print("I have it :D, using token!")
+		time.Sleep(time.Second * 1) // Simulate work/accessing CS
+		log.Print("Done using token.")
 
-		sleepDuration := rand.Intn(10) + 1
-		log.Printf("Sleep duration %v seconds", sleepDuration)
-		time.Sleep(time.Duration(sleepDuration) * time.Second)
+		PassToken()
 	}
 }
 
-func SendToken() {
-	log.Print("Sending token!")
-	_, err := sender.PassToken(context.Background(), &proto.Empty{})
+func PassToken() {
+	log.Print("Passing token!")
+	_, err := sender.ReceiveToken(context.Background(), &proto.Empty{})
 	if err != nil {
 		log.Fatalf("Error sending token | %v", err)
 	}
 
 	hasToken = false
-	log.Print("Token has been sent.")
+	log.Print("Token has been passed.")
 }
 
-func (server *ConsensusPeerServer) PassToken(ctx context.Context, empty *proto.Empty) (*proto.Empty, error) {
+func (server *ConsensusPeerServer) ReceiveToken(ctx context.Context, empty *proto.Empty) (*proto.Empty, error) {
+	if hasToken {
+		log.Fatalf("Bro... I already have a token, wtf are you doing :|")
+	}
+
 	hasToken = true
-	log.Print("We got the token!")
+	log.Print("We just got the token!")
 
 	return &proto.Empty{}, nil
 }
 
 func StartSender() {
-	portString := fmt.Sprintf(":1600%d", *sendPort)
+	port := *id + 1
+	if *starter {
+		port = 0
+	}
+
+	portString := fmt.Sprintf(":1600%d", port)
 	dialOptions := grpc.WithTransportCredentials(insecure.NewCredentials())
 	connection, connectionEstablishErr := grpc.NewClient(portString, dialOptions)
 	if connectionEstablishErr != nil {
@@ -90,7 +94,8 @@ func StartSender() {
 }
 
 func StartListener() {
-	portString := fmt.Sprintf(":1600%d", *listenPort)
+	port := *id
+	portString := fmt.Sprintf(":1600%d", port)
 	listener, listenErr := net.Listen("tcp", portString)
 	if listenErr != nil {
 		log.Fatalf("Failed to listen on port %s | %v", portString, listenErr)
