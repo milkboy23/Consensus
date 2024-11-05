@@ -19,14 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	TokenRing_PassToken_FullMethodName = "/TokenRing/PassToken"
+	TokenRing_ReceiveToken_FullMethodName = "/TokenRing/ReceiveToken"
 )
 
 // TokenRingClient is the client API for TokenRing service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type TokenRingClient interface {
-	PassToken(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
+	ReceiveToken(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type tokenRingClient struct {
@@ -37,10 +37,10 @@ func NewTokenRingClient(cc grpc.ClientConnInterface) TokenRingClient {
 	return &tokenRingClient{cc}
 }
 
-func (c *tokenRingClient) PassToken(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error) {
+func (c *tokenRingClient) ReceiveToken(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Empty)
-	err := c.cc.Invoke(ctx, TokenRing_PassToken_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, TokenRing_ReceiveToken_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func (c *tokenRingClient) PassToken(ctx context.Context, in *Empty, opts ...grpc
 // All implementations must embed UnimplementedTokenRingServer
 // for forward compatibility.
 type TokenRingServer interface {
-	PassToken(context.Context, *Empty) (*Empty, error)
+	ReceiveToken(context.Context, *Empty) (*Empty, error)
 	mustEmbedUnimplementedTokenRingServer()
 }
 
@@ -62,8 +62,8 @@ type TokenRingServer interface {
 // pointer dereference when methods are called.
 type UnimplementedTokenRingServer struct{}
 
-func (UnimplementedTokenRingServer) PassToken(context.Context, *Empty) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method PassToken not implemented")
+func (UnimplementedTokenRingServer) ReceiveToken(context.Context, *Empty) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReceiveToken not implemented")
 }
 func (UnimplementedTokenRingServer) mustEmbedUnimplementedTokenRingServer() {}
 func (UnimplementedTokenRingServer) testEmbeddedByValue()                   {}
@@ -86,20 +86,20 @@ func RegisterTokenRingServer(s grpc.ServiceRegistrar, srv TokenRingServer) {
 	s.RegisterService(&TokenRing_ServiceDesc, srv)
 }
 
-func _TokenRing_PassToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _TokenRing_ReceiveToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TokenRingServer).PassToken(ctx, in)
+		return srv.(TokenRingServer).ReceiveToken(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: TokenRing_PassToken_FullMethodName,
+		FullMethod: TokenRing_ReceiveToken_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TokenRingServer).PassToken(ctx, req.(*Empty))
+		return srv.(TokenRingServer).ReceiveToken(ctx, req.(*Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -112,8 +112,8 @@ var TokenRing_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*TokenRingServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "PassToken",
-			Handler:    _TokenRing_PassToken_Handler,
+			MethodName: "ReceiveToken",
+			Handler:    _TokenRing_ReceiveToken_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -2,7 +2,7 @@
 option go_package = "/";
 
 service TokenRing {
-  rpc PassToken (Empty) returns (Empty);
+  rpc ReceiveToken (Empty) returns (Empty);
 }
 
 message Empty {}
