@@ -30,9 +30,7 @@ func main() {
 	go StartListener()
 	StartSender()
 
-	go RandomlyWantToken()
-
-	<-make(chan int) // Just a way to freeze the program
+	RandomlyWantToken()
 }
 
 func RandomlyWantToken() {
