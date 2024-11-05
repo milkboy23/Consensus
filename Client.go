@@ -23,58 +23,63 @@ type ConsensusPeerServer struct {
 
 var sender proto.TokenRingClient
 var hasToken bool
+var done chan int
 
 func main() {
 	flag.Parse()
 	hasToken = *hasTokenAtStart
 
-	StartListener()
+	log.Printf("lPort %d | sPort %d | start %v", *listenPort, *sendPort, *hasTokenAtStart)
+
+	go StartListener()
 	StartSender()
 
 	go RandomlyWantToken()
+	<-done
 }
 
 func RandomlyWantToken() {
 	for {
-		fmt.Print("I want it :3")
-		fmt.Print("BUT I DON'T HAVE IT >:(")
-		for !hasToken {
-
-		}
+		log.Print("I want to use my token")
 
 		if !hasToken {
-			fmt.Print("This shit is broken.")
-		}
+			log.Print("BUT I DON'T HAVE IT >:(")
+			for !hasToken {
 
-		fmt.Print("Using token!")
+			}
+		}
+		log.Print("I have it :D")
+
+		log.Print("Using token!")
+		time.Sleep(time.Second * 1)
 		SendToken()
 
-		time.Sleep(time.Duration(rand.Intn(5)) * time.Second)
+		sleepDuration := rand.Intn(10) + 1
+		log.Printf("Sleep duration %v seconds", sleepDuration)
+		time.Sleep(time.Duration(sleepDuration) * time.Second)
 	}
 }
 
 func SendToken() {
+	log.Print("Sending token!")
 	_, err := sender.PassToken(context.Background(), &proto.Empty{})
 	if err != nil {
 		log.Fatalf("Error sending token | %v", err)
 	}
 
 	hasToken = false
-	fmt.Print("Token has been sent.")
+	log.Print("Token has been sent.")
 }
 
 func (server *ConsensusPeerServer) PassToken(ctx context.Context, empty *proto.Empty) (*proto.Empty, error) {
 	hasToken = true
-
-	fmt.Print("We got the token! Holding for 1 second...")
-	time.Sleep(time.Second * 1)
-	fmt.Print("Token passed.")
+	log.Print("We got the token!")
 
 	return &proto.Empty{}, nil
 }
 
 func StartSender() {
-	portString := fmt.Sprintf(":1600%d", sendPort)
+	portString := fmt.Sprintf(":1600%d", *sendPort)
 	dialOptions := grpc.WithTransportCredentials(insecure.NewCredentials())
 	connection, connectionEstablishErr := grpc.NewClient(portString, dialOptions)
 	if connectionEstablishErr != nil {
@@ -85,7 +90,7 @@ func StartSender() {
 }
 
 func StartListener() {
-	portString := fmt.Sprintf(":1600%d", listenPort)
+	portString := fmt.Sprintf(":1600%d", *listenPort)
 	listener, listenErr := net.Listen("tcp", portString)
 	if listenErr != nil {
 		log.Fatalf("Failed to listen on port %s | %v", portString, listenErr)
