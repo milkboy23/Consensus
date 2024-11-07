@@ -25,13 +25,13 @@ var sender proto.TokenRingClient
 var hasToken bool
 
 func main() {
-	flag.Parse()        // TODO
-	hasToken = *starter // set to the starter's bool
+	flag.Parse()        // Parses program arguments into flag variables
+	hasToken = *starter // Set from flags if this node has a token on start
 
-	go StartListener()
+	go RandomlyWantToken()
+
 	StartSender()
-
-	RandomlyWantToken()
+	StartListener()
 }
 
 func RandomlyWantToken() {
@@ -50,18 +50,18 @@ func RandomlyWantToken() {
 		time.Sleep(time.Second * 1) // Simulate work/accessing CS after receiving
 		log.Print("Done using token.")
 
-		PassToken()
+		PassToken() // Pass token to next node
 	}
 }
 
 func PassToken() {
 	log.Print("Passing token!")
-	_, err := sender.ReceiveToken(context.Background(), &proto.Empty{}) // send the token
+	_, err := sender.ReceiveToken(context.Background(), &proto.Empty{}) // Send the token via. gRPC
 	if err != nil {
 		log.Fatalf("Error sending token | %v", err)
 	}
 
-	hasToken = false // this node no longer has the token
+	hasToken = false // This node no longer has the token
 	log.Print("Token has been passed.")
 }
 
@@ -70,40 +70,40 @@ func (server *ConsensusPeerServer) ReceiveToken(ctx context.Context, empty *prot
 		log.Fatalf("Bro... I already have a token, wtf are you doing :|")
 	}
 
-	hasToken = true // node got the token
+	hasToken = true // Node received the token through gRPC
 	log.Print("We just got the token!")
 
 	return &proto.Empty{}, nil
 }
 
 func StartSender() {
-	port := *id + 1 // neighbour's port
-	if *starter {   // if it's the starter, neighbour's id is 0
+	port := *id + 1 // Neighbour's port
+	if *starter {   // If it's the starter, neighbour must be first node and have id 0
 		port = 0
 	}
 
-	portString := fmt.Sprintf(":1600%d", port)                                    // format
-	dialOptions := grpc.WithTransportCredentials(insecure.NewCredentials())       // ... TODO
-	connection, connectionEstablishErr := grpc.NewClient(portString, dialOptions) // register new node to gRPC server and get connection
+	portString := fmt.Sprintf(":1600%d", port) // Format port string
+	dialOptions := grpc.WithTransportCredentials(insecure.NewCredentials())
+	connection, connectionEstablishErr := grpc.NewClient(portString, dialOptions) // Register connection to neighbour node, so we can send commands to it
 	if connectionEstablishErr != nil {
 		log.Fatalf("Could not establish connection on port %s | %v", portString, connectionEstablishErr)
 	}
 
-	sender = proto.NewTokenRingClient(connection) // sender is set to be a token ring node with the connection to its port
+	sender = proto.NewTokenRingClient(connection) // Sender variable is set to be a token ring node with the connection to its port
 }
 
 func StartListener() {
-	port := *id                                          // listen on own port
-	portString := fmt.Sprintf(":1600%d", port)           // format to always accessible port
-	listener, listenErr := net.Listen("tcp", portString) // listener to listen with tcp on the 1600id port
+	port := *id                                          // Listen on our own port
+	portString := fmt.Sprintf(":1600%d", port)           // Format port string
+	listener, listenErr := net.Listen("tcp", portString) // Listen with TCP on the 1600[id] port
 	if listenErr != nil {
 		log.Fatalf("Failed to listen on port %s | %v", portString, listenErr)
 	}
 
-	grpcListener := grpc.NewServer() // make gRPC server (en ny gRPC server hver gang??)
+	grpcListener := grpc.NewServer() // Get reference to gRPC server (listener from which commands/gRPC calls come through)
 	proto.RegisterTokenRingServer(grpcListener, &ConsensusPeerServer{})
 
-	serveListenerErr := grpcListener.Serve(listener) // give the listener to the gRPC server
+	serveListenerErr := grpcListener.Serve(listener) // Activate listener (blocking call, program waits here until shutdown)
 	if serveListenerErr != nil {
 		log.Fatalf("Failed to serve listener | %v", serveListenerErr)
 	}
