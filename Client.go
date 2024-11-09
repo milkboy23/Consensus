@@ -15,6 +15,7 @@ import (
 )
 
 var starter = flag.Bool("s", false, "")
+
 var starterWants = flag.Bool("want", false, "")
 var id = flag.Int("id", 0, "")
 
@@ -39,10 +40,10 @@ func main() {
 
 func RandomlyWantToken() {
 
-	val := rand.Intn(1)
-	if val == 0 {
+	val := rand.Intn(100)
+	if val%2 == 0 {
 		wantsToken = true
-	} else if val == 1 {
+	} else if val%2 == 1 {
 		wantsToken = false
 	}
 
@@ -61,6 +62,8 @@ func RandomlyWantToken() {
 			log.Print("I have it :D, using token!")
 			time.Sleep(time.Second * 1) // Simulate work/accessing CS after receiving
 			log.Print("Done using token.")
+
+			wantsToken = false
 
 			PassToken() // Pass token to next node
 		}
