@@ -15,6 +15,7 @@ import (
 )
 
 var starter = flag.Bool("s", false, "")
+var starterWants = flag.Bool("want", false, "")
 var id = flag.Int("id", 0, "")
 
 type ConsensusPeerServer struct {
@@ -28,6 +29,7 @@ var wantsToken bool
 func main() {
 	flag.Parse()        // Parses program arguments into flag variables
 	hasToken = *starter // Set from flags if this node has a token on start
+	wantsToken = *starterWants
 
 	go RandomlyWantToken()
 
