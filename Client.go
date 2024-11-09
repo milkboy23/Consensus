@@ -23,6 +23,7 @@ type ConsensusPeerServer struct {
 
 var sender proto.TokenRingClient
 var hasToken bool
+var wantsToken bool
 
 func main() {
 	flag.Parse()        // Parses program arguments into flag variables
@@ -35,22 +36,34 @@ func main() {
 }
 
 func RandomlyWantToken() {
-	for {
-		sleepDuration := rand.Intn(10) + 1
-		time.Sleep(time.Duration(sleepDuration) * time.Second) // Wait until we want the token
-		log.Print("I want to use my token")
 
-		if !hasToken {
-			log.Print("BUT I DON'T HAVE IT >:(")
-			for !hasToken {
-			} // Wait until we get the token
+	val := rand.Intn(1)
+	if val == 0 {
+		wantsToken = true
+	} else if val == 1 {
+		wantsToken = false
+	}
+
+	if wantsToken {
+		for {
+			sleepDuration := rand.Intn(10) + 1
+			time.Sleep(time.Duration(sleepDuration) * time.Second) // Wait until we want the token
+			log.Print("I want to use my token")
+
+			if !hasToken {
+				log.Print("BUT I DON'T HAVE IT >:(")
+				for !hasToken {
+				} // Wait until we get the token
+			}
+
+			log.Print("I have it :D, using token!")
+			time.Sleep(time.Second * 1) // Simulate work/accessing CS after receiving
+			log.Print("Done using token.")
+
+			PassToken() // Pass token to next node
 		}
-
-		log.Print("I have it :D, using token!")
-		time.Sleep(time.Second * 1) // Simulate work/accessing CS after receiving
-		log.Print("Done using token.")
-
-		PassToken() // Pass token to next node
+	} else {
+		PassToken()
 	}
 }
 
