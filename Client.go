@@ -22,58 +22,65 @@ type ConsensusPeerServer struct {
 }
 
 var sender proto.TokenRingClient
-var hasToken bool
+var wantToken bool
 
 func main() {
-	flag.Parse()        // Parses program arguments into flag variables
-	hasToken = *starter // Set from flags if this node has a token on start
-
-	go RandomlyWantToken()
+	flag.Parse() // Parses program arguments into flag variables
 
 	StartSender()
 	StartListener()
+
+	if *starter { // If this node is the starter, inject a token into the system by passing without explicitly having received one
+		go PassToken()
+	}
+	RandomlyWantToken() // Randomly set wantToken to true every once in a while
 }
 
 func RandomlyWantToken() {
 	for {
-		sleepDuration := rand.Intn(10) + 1
-		time.Sleep(time.Duration(sleepDuration) * time.Second) // Wait until we want the token
-		log.Print("I want to use my token")
+		sleepDuration := rand.Intn(12) + 3                     // Between 3 and 15 seconds
+		time.Sleep(time.Duration(sleepDuration) * time.Second) // Wait until we want the token again
 
-		if !hasToken {
-			log.Print("BUT I DON'T HAVE IT >:(")
-			for !hasToken {
-			} // Wait until we get the token
-		}
+		wantToken = true
+		log.Print("I want to use my token!") // If you don't have a print statement here, the whole program breaks :)
 
-		log.Print("I have it :D, using token!")
-		time.Sleep(time.Second * 1) // Simulate work/accessing CS after receiving
-		log.Print("Done using token.")
-
-		PassToken() // Pass token to next node
+		for wantToken {
+		} // Wait until we no longer want token (after getting and using token)
 	}
-}
-
-func PassToken() {
-	log.Print("Passing token!")
-	_, err := sender.ReceiveToken(context.Background(), &proto.Empty{}) // Send the token via. gRPC
-	if err != nil {
-		log.Fatalf("Error sending token | %v", err)
-	}
-
-	hasToken = false // This node no longer has the token
-	log.Print("Token has been passed.")
 }
 
 func (server *ConsensusPeerServer) ReceiveToken(ctx context.Context, empty *proto.Empty) (*proto.Empty, error) {
-	if hasToken {
-		log.Fatalf("Bro... I already have a token, wtf are you doing :|")
+	// We just received a token (access to CS),
+	// and do different things depending on whether we want to use it right now
+	if !wantToken {
+		log.Print("Just got the token, passing...")
+		time.Sleep(time.Second) // Hold the token for a second
+		go PassToken()          // Pass token to next node because we're done with it
+	} else {
+		//log.Print("Just got the token, using...")
+		UseToken() // Hold the token for 3 seconds
 	}
-
-	hasToken = true // Node received the token through gRPC
-	log.Print("We just got the token!")
-
 	return &proto.Empty{}, nil
+}
+
+func UseToken() {
+	log.Print("Got the token.")
+	log.Print("Accessing Critical Section...")
+	time.Sleep(time.Second * 3) // Simulate work/accessing CS
+
+	log.Print("Done using token.")
+	wantToken = false // We no longer want the token
+
+	go PassToken() // Pass token to next node because we're done with it
+}
+
+func PassToken() {
+	_, err := sender.ReceiveToken(context.Background(), &proto.Empty{}) // Send the token via. gRPC
+	// P.S. This ^^^ gRPC call is blocking, because it waits for a response from the receiving node.
+	// Which is why we throw it to a goroutine.
+	if err != nil {
+		log.Fatalf("Error sending token | %v", err)
+	}
 }
 
 func StartSender() {
@@ -103,6 +110,12 @@ func StartListener() {
 	grpcListener := grpc.NewServer() // Get reference to gRPC server (listener from which commands/gRPC calls come through)
 	proto.RegisterTokenRingServer(grpcListener, &ConsensusPeerServer{})
 
+	go serveListener(grpcListener, listener)
+	// Throw listener serving method to goroutine,
+	// because otherwise the program just waits/stops here, and that would be annoying
+}
+
+func serveListener(grpcListener *grpc.Server, listener net.Listener) {
 	serveListenerErr := grpcListener.Serve(listener) // Activate listener (blocking call, program waits here until shutdown)
 	if serveListenerErr != nil {
 		log.Fatalf("Failed to serve listener | %v", serveListenerErr)
