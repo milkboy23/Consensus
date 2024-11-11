@@ -5,12 +5,13 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	"log"
 	"math/rand"
 	"net"
 	"time"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 var starter = flag.Bool("s", false, "")
@@ -56,13 +57,15 @@ func (server *ConsensusPeerServer) ReceiveToken(ctx context.Context, empty *prot
 		time.Sleep(time.Second) // Hold the token for a second
 		go PassToken()          // Pass token to next node because we're done with it
 	} else {
-		log.Print("Just got the token, using...")
+		//log.Print("Just got the token, using...")
 		UseToken() // Hold the token for 3 seconds
 	}
 	return &proto.Empty{}, nil
 }
 
 func UseToken() {
+	log.Print("Got the token.")
+	log.Print("Accessing Critical Section...")
 	time.Sleep(time.Second * 3) // Simulate work/accessing CS
 
 	log.Print("Done using token.")
